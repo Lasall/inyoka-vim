@@ -10,10 +10,39 @@ if exists("b:current_syntax")
   finish
 endif
 
+
+" Function to highlight different regions with different syntax schemes.
+" Modified version of vim.wikia:
+" http://vim.wikia.com/wiki/Different_syntax_highlighting_within_regions_of_a_file
+function! s:TextEnableCodeSnip2(filetype, bang) abort
+  let ft=toupper(a:filetype)
+  if exists('b:current_syntax')
+    let s:current_syntax=b:current_syntax
+    " Remove current syntax definition, as some syntax files (e.g. cpp.vim)
+    " do nothing if b:current_syntax is defined.
+    unlet b:current_syntax
+  endif
+  try
+    exec 'syn include @'.ft.' syntax/'.a:filetype.'.vim'
+    try
+      exec 'syn include @'.ft.' after/syntax/'.a:filetype.'.vim'
+    catch
+    endtry
+    if exists('s:current_syntax')
+      let b:current_syntax=s:current_syntax
+    else
+      unlet b:current_syntax
+    endif
+    exec 'syn region inyokaCodeBlock start="\({{{\)\@<=\#\!code\s\+'.a:bang.'\(\s\+\|$\)" skip="\\}\\}\\}" end="}}}" transparent contains=@'.ft.',inyokaCodeIdentifier contained'
+  catch
+  endtry
+endfunction
+
+
 syn case match
 
 " Supportet templates or macros.
-" NOTE: Name template parent directory first in list.
+" NOTE: Name the parent directory of templates first in list.
 let s:template_str = ["Vorlage", "Inhaltsverzeichnis"]
 
 
@@ -23,30 +52,52 @@ syn cluster inyokaBlocks contains=inyokaH1,inyokaH2,inyokaH3,inyokaH4,inyokaH5,i
 syn cluster inyokaInline contains=inyokaLineBreak,inyokaItalic,inyokaBold,inyokaBoldItalic,inyokaUnderline,inyokaMono,inyokaTemplateInline,inyokaLinks,inyokaFlag,inyokaList
 
 " headings
-syn region inyokaH1 matchgroup=inyokaHeadingDelimiter start="^=" end="=\+\s*$" keepend contains=@inyokaInline contained
-syn region inyokaH2 matchgroup=inyokaHeadingDelimiter start="^==" end="=\+\s*$" keepend contains=@inyokaInline contained
-syn region inyokaH3 matchgroup=inyokaHeadingDelimiter start="^===" end="=\+\s*$" keepend contains=@inyokaInline contained
-syn region inyokaH4 matchgroup=inyokaHeadingDelimiter start="^====" end="=\+\s*$" keepend contains=@inyokaInline contained
-syn region inyokaH5 matchgroup=inyokaHeadingDelimiter start="^=====" end="=\+\s*$" keepend contains=@inyokaInline contained
+syn region inyokaH1 matchgroup=inyokaHeadingDelimiter start="^="      end="=\+\s*$" keepend contains=@inyokaInline contained
+syn region inyokaH2 matchgroup=inyokaHeadingDelimiter start="^=="     end="=\+\s*$" keepend contains=@inyokaInline contained
+syn region inyokaH3 matchgroup=inyokaHeadingDelimiter start="^==="    end="=\+\s*$" keepend contains=@inyokaInline contained
+syn region inyokaH4 matchgroup=inyokaHeadingDelimiter start="^===="   end="=\+\s*$" keepend contains=@inyokaInline contained
+syn region inyokaH5 matchgroup=inyokaHeadingDelimiter start="^====="  end="=\+\s*$" keepend contains=@inyokaInline contained
 syn region inyokaH6 matchgroup=inyokaHeadingDelimiter start="^======" end="=\+\s*$" keepend contains=@inyokaInline contained
 
 
 " template blocks
-syn region inyokaBlock matchgroup=inyokaBlockDelimiter start="{{{" skip="\\}\\}\\}" end="}}}" keepend contains=inyokaTemplateBlock,inyokaCodeIdentifier contained
+syn region inyokaBlock matchgroup=inyokaBlockDelimiter start="{{{" skip="\\}\\}\\}" end="}}}" keepend contains=inyokaTemplateBlock,inyokaCodeBlock contained fold
 
+" templates
 syn match inyokaTemplateTypeFalse ".*" contained
-let s:exec_template_block = 'syn region inyokaTemplateBlock start="{\@<=\#\!' . s:template_str[0] . '\s\+\w\@=" skip="\\}\\}\\}" end="}}}" transparent contains=inyokaTemplateIdentifier,@inyokaInline contained'
-let s:exec_block_identifier = 'syn match inyokaTemplateIdentifier "{\@<=\#\!' . s:template_str[0] . '\s\+\w\@=" nextgroup=inyokaTemplateType contained'
 syn case ignore
-exec s:exec_template_block
-exec s:exec_block_identifier
+exec 'syn region inyokaTemplateBlock start="\({{{\)\@<=\#\!'.s:template_str[0].'\s\+\w\@=" skip="\\}\\}\\}" end="}}}" transparent contains=inyokaTemplateIdentifier,@inyokaInline contained'
+exec 'syn match inyokaTemplateIdentifier "\({{{\)\@<=\#\!'.s:template_str[0].'\s\+\w\@=" nextgroup=inyokaTemplateType contained'
 syn case match
 syn match inyokaTemplateType "\w\+" nextgroup=inyokaTemplateTypeFalse contained
 
-syn match inyokaCodeIdentifier "{\@<=\#\!code\(\s\+\|$\)" nextgroup=inyokaCodeType contained
+" code
+syn match inyokaCodeIdentifier "\({{{\)\@<=\#\!code\(\s\+\|$\)" nextgroup=inyokaCodeType contained
 syn match inyokaCodeType "\w\+" nextgroup=inyokaTemplateTypeFalse contained
-" TODO: Inline code highlighting.
-" http://vim.wikia.com/wiki/Different_syntax_highlighting_within_regions_of_a_file
+
+" We wan't display not recognised code properly.
+syn region inyokaCodeBlock start="\({{{\)\@<=\#\!code\(\s\+\|$\)" skip="\\}\\}\\}" end="}}}" transparent contains=inyokaCodeIdentifier contained
+
+" include inline code highlightings
+" This is very expensive, so only enable common types.
+" TODO1: Is it possible to call only if needed? We would get matching from
+"        inyokaTemplateIdentifier match.
+" TODO2: Make config options. To enable/disalbe supported file types.
+" File import errors will dropped silently.
+"
+" To add a new  language, add 'call s:TextEnableCodeSnip2('FT', 'REGEX')' where
+" FT is the file extension which is used by VIM and REGEX is the regular
+" expressions to detect the code identifier used by pygmentize (and inyoka).
+call s:TextEnableCodeSnip2('sh', '\(\|ba\)sh')
+call s:TextEnableCodeSnip2('debsources', '\(sourceslist\|sources\.list\)')
+call s:TextEnableCodeSnip2('debcontrol', 'control')
+call s:TextEnableCodeSnip2('python', 'python')
+call s:TextEnableCodeSnip2('cpp', 'cpp')
+call s:TextEnableCodeSnip2('perl', 'perl')
+call s:TextEnableCodeSnip2('c', 'c')
+call s:TextEnableCodeSnip2('xml', 'xml')
+" call s:TextEnableCodeSnip2('html', 'html')
+
 
 " lists
 syn match inyokaList "^\s\+\([-*]\|1\.\)\%\(\s*\S\)\@="
@@ -64,7 +115,7 @@ syn region inyokaMono start="\S\@<=`\|`\S\@=" skip="\\`" end="\S\@<=`\|`\S\@=" k
 
 syn region inyokaLinks matchgroup=inyokaLinksDelimiter start="\[" skip="\\\]" end="\]" keepend contains=inyokaLinksOuter,inyokaLinksInterWiki,inyokaLinksInner
 
-syn region inyokaTemplateInline matchgroup=inyokaTemplateDelimiter start="\[\[" skip="\\]\\]" end="\]\]" keepend contains=inyokaLineStart,inyokaTemplateKeywords,inyokaTemplateArgs,inyokaTemplateFalse
+syn region inyokaTemplateInline matchgroup=inyokaTemplateDelimiter start="\[\[" skip="\\]\\]" end="\]\]" keepend contains=inyokaLineStart,inyokaTemplateKeywords,inyokaTemplateArgs,inyokaTemplateFalse fold
 
 " links
 syn match inyokaLinksInterWiki "[^ :]\+\s*:\@=" nextgroup=inyokaLinksInner skipwhite contained
@@ -73,8 +124,7 @@ syn region inyokaLinksInner matchgroup=inyokaLinksDelimiter start=":" end=":" ke
 syn match inyokaLinksTitle ".*" contains=@inyokaInline contained
 
 syn match inyokaTemplateFalse ".*" contained
-let s:exec_template_keywords = 'syn match inyokaTemplateKeywords "\s*\(' . join(s:template_str, '\|') . '\)\s*" contained'
-exec s:exec_template_keywords
+exec 'syn match inyokaTemplateKeywords "\s*\('.join(s:template_str, '\|').'\)\s*" contained'
 syn region inyokaTemplateArgs matchgroup=inyokaTemplateArgsDelimiter start="(" skip="\\)" end=")\s*" keepend contains=inyokaTemplateArg,inyokaTemplateParams contained
 syn region inyokaTemplateParams start="[^,]" end="" keepend contained
 " TODO: Check templates.
