@@ -1,7 +1,7 @@
 " VIM syntax file
 " Language:     Inyoka
 " Maintainer:   Dominique Lasserre <lasserre.d@gmail.com>
-" Latest Revision: 19 September 2012
+" Last Change: 2012 September 20
 "
 " This is based on the markdown.vim syntax highlighting by:
 "     Tim (master of VIM) Pope <vimNOSPAM@tpope.org>
@@ -35,7 +35,16 @@ syn region inyokaBoldItalic start="\S\@<='''''\|'''''\S\@=" skip="\\'" end="\S\@
 syn region inyokaUnderline start="\S\@<=__\|__\S\@=" skip="\\=" end="\S\@<=__\|__\S\@=" keepend contains=inyokaLineStart
 syn region inyokaCode start="\S\@<=`\|`\S\@=" skip="\\`" end="\S\@<=`\|`\S\@=" keepend contains=inyokaLineStart
 
+syn region inyokaLinks matchgroup=inyokaLinksDelimiter start="\[" skip="\\\]" end="\]" keepend contains=inyokaLinksOuter,inyokaLinksInterWiki,inyokaLinksInner
+
 syn region inyokaTemplateInline matchgroup=inyokaTemplateDelimiter start="\[\[" skip="\\]\\]" end="\]\]" keepend contains=inyokaLineStart,inyokaTemplateKeywords,inyokaTemplateArgs,inyokaTemplateFalse
+
+" links
+syn match inyokaLinksInterWiki "[^ :]\+\s*:\@=" nextgroup=inyokaLinksInner skipwhite contained
+syn match inyokaLinksOuter "\S\+://\S\+" nextgroup=inyokaLinksTitle skipwhite contained
+syn region inyokaLinksInner matchgroup=inyokaLinksDelimiter start=":" end=":" keepend nextgroup=inyokaLinksTitle skipwhite contained
+
+syn match inyokaLinksTitle ".*" contains=@inyokaInline contained
 
 " Supportet templates or macros.
 let s:template_str = ["Vorlage", "Inhaltsverzeichnis"]
@@ -45,12 +54,8 @@ let s:exec_template_keywords = 'syn match inyokaTemplateKeywords "\s*\(' . join(
 exec s:exec_template_keywords
 syn region inyokaTemplateArgs matchgroup=inyokaTemplateArgsDelimiter start="(" skip="\\)" end=")\s*" keepend contains=inyokaTemplateArg,inyokaTemplateParams contained
 syn region inyokaTemplateParams start="[^,]" end="" keepend contained
+" TODO: Check stash templates.
 syn region inyokaTemplateArg matchgroup=inyokaTemplateArgDelimiter start="(\@<=[^,)]\+" end="" keepend contained
-
-" links
-syn region inyokaLinks matchgroup=inyokaLinksDelimiter start="\[" skip="\\\]" end="\]" keepend contains=inyokaLinksInner,inyokaLinksInter contained
-
-syn region inyokaLinksInner matchgroup=inyokaLinksDelimiter start=":" end=":" keepend contained
 
 
 " template Language
@@ -102,8 +107,11 @@ hi def link inyokaRule             Special
 hi def link inyokaTag              Tag
 hi def link inyokaComment          Comment
 
-hi def link inyokaLinks            Tag
-hi def link inyokaLinksInner       Underlined
+hi def link inyokaUrl              Define
+hi          inyokaLinksTitle       guifg=lightred ctermfg=red
+hi          inyokaLinksInner       guifg=darkcyan ctermfg=darkcyan gui=underline cterm=underline
+hi          inyokaLinksOuter       guifg=blue ctermfg=blue gui=underline cterm=underline
+hi          inyokaLinksInterWiki   guifg=yellow ctermfg=yellow
 hi def link inyokaLinksDelimiter   Identifier
 
 let b:current_syntax = "inyoka"
