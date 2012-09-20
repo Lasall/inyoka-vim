@@ -43,25 +43,25 @@ syn case match
 
 " Supportet templates or macros.
 " NOTE: Name the parent directory of templates first in list.
-let s:template_str = ["Vorlage", "Inhaltsverzeichnis"]
+let s:template_str = ["Vorlage", "Inhaltsverzeichnis", "Anker", "Anhang", "Bild"]
 
 
 syn match inyokaLineStart "^[<@]\@!" nextgroup=@inyokaBlocks
 
 syn cluster inyokaBlocks contains=inyokaH1,inyokaH2,inyokaH3,inyokaH4,inyokaH5,inyokaH6,inyokaBlock
-syn cluster inyokaInline contains=inyokaLineBreak,inyokaItalic,inyokaBold,inyokaBoldItalic,inyokaUnderline,inyokaMono,inyokaTemplateInline,inyokaLinks,inyokaFlag,inyokaList
+syn cluster inyokaInline contains=inyokaItalic,inyokaBold,inyokaBoldItalic,inyokaUnderline,inyokaMono,inyokaTemplateInline,inyokaLinks,inyokaFlag,inyokaList,inyokaKeywords,inyokaTableOpts
 
 " headings
-syn region inyokaH1 matchgroup=inyokaHeadingDelimiter start="^="      end="=\+\s*$" keepend contains=@inyokaInline contained
-syn region inyokaH2 matchgroup=inyokaHeadingDelimiter start="^=="     end="=\+\s*$" keepend contains=@inyokaInline contained
-syn region inyokaH3 matchgroup=inyokaHeadingDelimiter start="^==="    end="=\+\s*$" keepend contains=@inyokaInline contained
-syn region inyokaH4 matchgroup=inyokaHeadingDelimiter start="^===="   end="=\+\s*$" keepend contains=@inyokaInline contained
-syn region inyokaH5 matchgroup=inyokaHeadingDelimiter start="^====="  end="=\+\s*$" keepend contains=@inyokaInline contained
+syn region inyokaH1 matchgroup=inyokaHeadingDelimiter start="^=" end="=\+\s*$" keepend contains=@inyokaInline contained
+syn region inyokaH2 matchgroup=inyokaHeadingDelimiter start="^==" end="=\+\s*$" keepend contains=@inyokaInline contained
+syn region inyokaH3 matchgroup=inyokaHeadingDelimiter start="^===" end="=\+\s*$" keepend contains=@inyokaInline contained
+syn region inyokaH4 matchgroup=inyokaHeadingDelimiter start="^====" end="=\+\s*$" keepend contains=@inyokaInline contained
+syn region inyokaH5 matchgroup=inyokaHeadingDelimiter start="^=====" end="=\+\s*$" keepend contains=@inyokaInline contained
 syn region inyokaH6 matchgroup=inyokaHeadingDelimiter start="^======" end="=\+\s*$" keepend contains=@inyokaInline contained
 
 
 " template blocks
-syn region inyokaBlock matchgroup=inyokaBlockDelimiter start="{{{" skip="\\}\\}\\}" end="}}}" keepend contains=inyokaTemplateBlock,inyokaCodeBlock contained fold
+syn region inyokaBlock matchgroup=inyokaBlockDelimiter start="{{{" skip="\\}\\}\\}" end="}}}" keepend contains=inyokaTemplateBlock,inyokaCodeBlock fold
 
 " templates
 syn match inyokaTemplateTypeFalse ".*" contained
@@ -105,7 +105,6 @@ syn match inyokaList "^\s\+\([-*]\|1\.\)\%\(\s*\S\)\@="
 " quotes
 syn match inyokaQuote "^>\+\s*"
 
-
 " inline markups
 syn region inyokaItalic start="\S\@<=''\|''\S\@=" skip="\\'" end="\S\@<=''\|''\S\@=" keepend contains=inyokaLineStart
 syn region inyokaBold start="\S\@<='''\|'''\S\@=" skip="\\'" end="\S\@<='''\|'''\S\@=" keepend contains=inyokaLineStart
@@ -113,14 +112,15 @@ syn region inyokaBoldItalic start="\S\@<='''''\|'''''\S\@=" skip="\\'" end="\S\@
 syn region inyokaUnderline start="\S\@<=__\|__\S\@=" skip="\\=" end="\S\@<=__\|__\S\@=" keepend contains=inyokaLineStart
 syn region inyokaMono start="\S\@<=`\|`\S\@=" skip="\\`" end="\S\@<=`\|`\S\@=" keepend contains=inyokaLineStart
 
-syn region inyokaLinks matchgroup=inyokaLinksDelimiter start="\[" skip="\\\]" end="\]" keepend contains=inyokaLinksOuter,inyokaLinksInterWiki,inyokaLinksInner
+syn region inyokaLinks matchgroup=inyokaLinksDelimiter start="\[" skip="\\\]" end="\]" keepend contains=inyokaLinksOuter,inyokaLinksInterWiki,inyokaLinksInner,inyokaPointer,inyokaLineStart
 
-syn region inyokaTemplateInline matchgroup=inyokaTemplateDelimiter start="\[\[" skip="\\]\\]" end="\]\]" keepend contains=inyokaLineStart,inyokaTemplateKeywords,inyokaTemplateArgs,inyokaTemplateFalse fold
+syn region inyokaTemplateInline matchgroup=inyokaTemplateDelimiter start="\[\[" skip="\\]\\]" end="\]\]" keepend contains=inyokaLineBreak,inyokaTemplateKeywords,inyokaTemplateArgs,inyokaTemplateFalse,inyokaLineStart fold
 
 " links
 syn match inyokaLinksInterWiki "[^ :]\+\s*:\@=" nextgroup=inyokaLinksInner skipwhite contained
 syn match inyokaLinksOuter "\S\+://\S\+" nextgroup=inyokaLinksTitle skipwhite contained
 syn region inyokaLinksInner matchgroup=inyokaLinksDelimiter start=":" end=":" keepend nextgroup=inyokaLinksTitle skipwhite contained
+syn region inyokaLinksInner matchgroup=inyokaLinksDelimiter start="#" end=" " keepend nextgroup=inyokaLinksTitle skipwhite contained
 syn match inyokaLinksTitle ".*" contains=@inyokaInline contained
 
 syn match inyokaTemplateFalse ".*" contained
@@ -130,6 +130,13 @@ syn region inyokaTemplateParams start="[^,]" end="" keepend contained
 " TODO: Check templates.
 syn region inyokaTemplateArg matchgroup=inyokaTemplateArgDelimiter start="(\@<=[^,)]\+" end="" keepend contained
 
+" pointers
+syn match inyokaPointer "\s*\d\+\s*" contained nextgroup=inyokaPointerFalse
+syn match inyokaPointerFalse ".*" contained
+
+" line break
+syn match inyokaLineBreak "\s*BR\s*" contained
+
 
 " template Language
 " TODO: Do the crazy inyoka template language highlightings.
@@ -137,16 +144,33 @@ syn region inyokaTemplateArg matchgroup=inyokaTemplateArgDelimiter start="(\@<=[
 
 
 " flags
-syn match       inyokaFlag            /{[^{}]\+}/
+syn match inyokaFlag "{[^{}]\+}"
 
 " line
-syn match       inyokaRule            /^-\{4,\}/
+syn match inyokaRule "^-\{4,\}"
 
 " tags
-syn match       inyokaTag             /^#\s\+tag:.*$/
+syn match inyokaTag "^#\s\+tag:.*$"
 
 " comments
-syn match       inyokaComment         /^##.*$/
+syn match inyokaComment "^##.*$"
+
+
+" keywords
+syn match inyokaKeywords "\\\\$"
+
+" tables keywords
+syn match inyokaKeywords "^+++$" contained
+syn region inyokaTableOpts matchgroup=inyokaTableDelimiter start="<" end=">" keepend contains=inyokaTableKeywords,inyokaTableString,inyokaTableOperators,inyokaTableNumbers contained
+syn match inyokaTableKeywords "\(-\||\|rowclass\|rowstyle\|:\|v\|cellclass\|cellstyle\|(\|)\|\^\|tablestyle\)" contained
+syn match inyokaTableString "\".*\"" contains=inyokaTableOperators contained
+syn match inyokaTableOperators "\(=\|;\)" contained
+syn match inyokaTableNumbers "\d\+" contained
+
+" old table syntax
+syn region inyokaOldTable matchgroup=inyokaTableDelimiter start="^\s*||" end="||\s*$" keepend contains=inyokaTableOpts,inyokaOldTableKeywords,@inyokaBlocks,@inyokaInline
+syn match inyokaOldTableKeywords "||" contained
+
 
 
 " Define the default highlighting.
@@ -159,6 +183,7 @@ hi          inyokaH4               guifg=red ctermfg=red gui=bold,underline cter
 hi          inyokaH5               guifg=red ctermfg=red gui=bold,underline cterm=bold,underline
 hi          inyokaH6               guifg=red ctermfg=red gui=bold,underline cterm=bold,underline
 
+hi def link inyokaLineBreak        Special
 hi          inyokaItalic           guifg=white ctermfg=white
 hi          inyokaBold             gui=bold cterm=bold
 hi          inyokaBoldItalic       guifg=white ctermfg=white gui=bold cterm=bold
@@ -177,6 +202,14 @@ hi def link inyokaTemplateTypeFalse Error
 hi def link inyokaCodeIdentifier   Define
 hi          inyokaCodeType         guifg=yellow ctermfg=yellow gui=bold cterm=bold
 
+hi def link inyokaTableDelimiter   Identifier
+hi def link inyokaTableKeywords    Statement
+hi          inyokaTableOperators   guifg=lightgreen ctermfg=lightgreen
+hi def link inyokaTableString      String
+hi def link inyokaTableNumbers     Number
+
+hi def link inyokaOldTableKeywords Identifier
+
 hi def link inyokaTemplateInline   Define
 hi def link inyokaTemplateFalse    Error
 hi def link inyokaTemplateDelimiter Identifier
@@ -192,6 +225,7 @@ hi def link inyokaFlag             Define
 hi def link inyokaRule             Special
 hi def link inyokaTag              Tag
 hi def link inyokaComment          Comment
+hi def link inyokaKeywords         Special
 
 hi def link inyokaUrl              Define
 hi          inyokaLinksTitle       guifg=lightred ctermfg=red
@@ -199,6 +233,9 @@ hi          inyokaLinksInner       guifg=lightblue ctermfg=lightblue gui=underli
 hi          inyokaLinksOuter       guifg=blue ctermfg=blue gui=underline cterm=underline
 hi          inyokaLinksInterWiki   guifg=green ctermfg=green
 hi def link inyokaLinksDelimiter   Identifier
+hi def link inyokaPointer          Number
+hi def link inyokaPointerFalse     Error
+
 
 let b:current_syntax = "inyoka"
 
