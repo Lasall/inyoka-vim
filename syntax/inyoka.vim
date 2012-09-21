@@ -65,7 +65,7 @@ syn match inyokaLineStart "^[<@]\@!" nextgroup=@inyokaBlocks
 
 syn cluster inyokaBlocks contains=inyokaH1fold,inyokaH2fold,inyokaH3,inyokaH4,inyokaH5,inyokaH6,inyokaBlock
 syn cluster inyokaInline contains=inyokaItalic,inyokaBold,inyokaBoldItalic,inyokaUnderline,inyokaMono,inyokaStrikeout,inyokaSmaller,inyokaBigger,inyokaMarker,inyokaModTags,inyokaLinks,inyokaFlag,inyokaList,inyokaKeywords,inyokaTemplateInline,inyokaOldTable
-syn cluster inyokaLevel1 contains=inyokaComment,inyokaQuote,inyokaTag
+syn cluster inyokaLevel1 contains=inyokaComment,inyokaQuote,inyokaTag,inyokaRule
 
 " headings
 " Folds level one and two.
@@ -198,11 +198,11 @@ syn region inyokaModTags start="\[edit=[^]]*\]" end="\[/edit\]" keepend contains
 syn match inyokaFlag "{[^{}]\+}"
 
 " line
-syn match inyokaRule "^-\{4,\}"
+syn match inyokaRule "^-\{4,}"
 
 " tags
-syn region inyokaTag start="^#\s*tag:" end="$" contains=inyokaTagKeywords
-syn region inyokaTagKeywords start="\(tag:\|,\)\@<=" end=",\@=" contained
+syn region inyokaTag start="^#\s*\(tag\|X-\w\+\):" end="$" contains=inyokaTagKeywords
+syn region inyokaTagKeywords start="\(tag:\|X-\w\+:\|,\)\@<=" end="\(,\|$\)\@=" oneline contained
 
 " comments
 syn match inyokaComment "^##.*$"

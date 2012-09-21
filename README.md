@@ -30,7 +30,7 @@ identifier (make, perl, debsources).
  * Nested code blocks don't work ({{{ foobar {{{ barfoo \\}\\}\\} }}}). Use
 inline templates instead.
 
-If you find additional bugs/problems/failures please report it!
+If you find additional bugs/problems/failures please report them!
 
 
 Installation
