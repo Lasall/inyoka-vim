@@ -1,13 +1,14 @@
 inyoka-vim
 ==========
 inyoka-vim contains an [inyoka](http://inyokaproject.org) VIM syntax
-highlighting scheme (and in short some snipMate snippets) for VIM 7+.
+highlighting scheme (with syntax folding) and some snipMate snippets for
+VIM 7+.
 All color definitions are optimized for a dark colorscheme (I use
 xoria256) but please feel free to propose changes (e.g. a complete suite
 for a light colorscheme). Also inner file syntax highlighting of other
 common languages is supported (c, cpp, sh/bash, python, perl, xml,
 debsources, debcontrol).
-Adding other languages is very easy. Just look into the code line ~90.
+Adding other languages is very easy. Just look into the code line ~125.
 
 I got inspiration from the markdown syntax scheme by Tim Pope.
 
@@ -18,16 +19,31 @@ You find the license text under: http://www.gnu.org/licenses/gpl-3.0.txt
 
 What works what doesn't?
 ------------------------
-So far it's pretty usable (at least for me). Template methods can
-get improved to detect which arguments are valid and not all inline
-formattings are working inside of blocks. But at the moment that's it.
+So far it's pretty usable (at least for me).
+
+Everything works except following things:
+ * Currently not all inline formattings are working (well) inside of blocks
+(problems with perl). Actually there is perl highlighting but keywords
+are missed.
+ * Some languages will change leading #!code CODETYPE
+identifier (make, perl, debsources).
+ * Nested code blocks don't work ({{{ foobar {{{ barfoo \\}\\}\\} }}}). Use
+inline templates instead.
+
+If you find additional bugs/problems/failures please report it!
 
 
 Installation
 ------------
-Copy the inyoka.vim syntax file to your `$VIMRUNTIME/syntax` directory.
+Copy the *inyoka.vim* syntax file to your `$VIMRUNTIME/syntax` directory.
 Then reload vim and set filetype to `inyoka` and use syntax foldmethod:
 `:set ft=inyoka fdm=syntax`
+
+To use snippets, first install snipMate from github repository:
+git://github.com/msanders/snipmate.vim.git
+Version from vim.org is not up to date (problems with \` completions).
+Then copy *inyoka.snippet* to your snippet directory (`$VIMRUNTIME/snippet`)
+and enjoy.
 
 
 Contributions
