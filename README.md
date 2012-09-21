@@ -1,7 +1,7 @@
 inyoka-vim
 ==========
 inyoka-vim contains an [inyoka](http://inyokaproject.org) VIM syntax
-highlighting scheme (and in short some snipMate sippets) for VIM 7+.
+highlighting scheme (and in short some snipMate snippets) for VIM 7+.
 All color definitions are optimized for a dark colorscheme (I use
 xoria256) but please feel free to propose changes (e.g. a complete suite
 for a light colorscheme). Also inner file syntax highlighting of other
