@@ -48,12 +48,18 @@ let s:template_str = ["Vorlage", "Inhaltsverzeichnis", "Anker", "Anhang", "Bild"
 
 syn match inyokaLineStart "^[<@]\@!" nextgroup=@inyokaBlocks
 
-syn cluster inyokaBlocks contains=inyokaH1,inyokaH2,inyokaH3,inyokaH4,inyokaH5,inyokaH6,inyokaBlock
-syn cluster inyokaInline contains=inyokaItalic,inyokaBold,inyokaBoldItalic,inyokaUnderline,inyokaMono,inyokaStrikeout,inyokaSmaller,inyokaBigger,inyokaMarker,inyokaModTags,inyokaTemplateInline,inyokaLinks,inyokaFlag,inyokaList,inyokaKeywords,inyokaTableOpts
+syn cluster inyokaBlocks contains=inyokaH1fold,inyokaH2fold,inyokaH3,inyokaH4,inyokaH5,inyokaH6,inyokaBlock
+syn cluster inyokaInline contains=inyokaItalic,inyokaBold,inyokaBoldItalic,inyokaUnderline,inyokaMono,inyokaStrikeout,inyokaSmaller,inyokaBigger,inyokaMarker,inyokaModTags,inyokaLinks,inyokaFlag,inyokaList,inyokaKeywords,inyokaTemplateInline,@inyokaNewTable
+syn cluster inyokaLevel1 contains=inyokaComment,inyokaQuote,inyokaTag
 
 " headings
-syn region inyokaH1 matchgroup=inyokaHeadingDelimiter start="^=" end="=\+\s*$" keepend contains=@inyokaInline contained
-syn region inyokaH2 matchgroup=inyokaHeadingDelimiter start="^==" end="=\+\s*$" keepend contains=@inyokaInline contained
+" Folds level one and two.
+syn region inyokaH1fold start="^=\([^=]\|$\)" end="\(^=\([^=]\|$\)\)\@=" keepend contains=inyokaH1,inyokaH2fold,@inyokaInline,@inyokaLevel1,inyokaLineStart contained fold
+syn region inyokaH1 matchgroup=inyokaHeadingDelimiter start="^=" end="=\+\s*$" keepend contained
+
+syn region inyokaH2fold start="^==\([^=]\|$\)" end="\(^=\(=\?\|$\)\)\@=" keepend contains=inyokaH2,@inyokaInline,@inyokaLevel1,inyokaLineStart contained fold
+syn region inyokaH2 matchgroup=inyokaHeadingDelimiter start="^==" end="=\+\s*$" keepend contained
+
 syn region inyokaH3 matchgroup=inyokaHeadingDelimiter start="^===" end="=\+\s*$" keepend contains=@inyokaInline contained
 syn region inyokaH4 matchgroup=inyokaHeadingDelimiter start="^====" end="=\+\s*$" keepend contains=@inyokaInline contained
 syn region inyokaH5 matchgroup=inyokaHeadingDelimiter start="^=====" end="=\+\s*$" keepend contains=@inyokaInline contained
@@ -172,12 +178,16 @@ syn match inyokaComment "^##.*$"
 syn match inyokaKeywords "\\\\$"
 
 " tables keywords
-syn match inyokaKeywords "^+++$" contained
+syn cluster inyokaNewTable contains=inyokaTableOpts,inyokaNewTableKeywords
+
 syn region inyokaTableOpts matchgroup=inyokaTableDelimiter start="<" end=">" keepend contains=inyokaTableKeywords,inyokaTableString,inyokaTableOperators,inyokaTableNumbers contained
 syn match inyokaTableKeywords "\(-\||\|rowclass\|rowstyle\|:\|v\|cellclass\|cellstyle\|(\|)\|\^\|tablestyle\)" contained
 syn match inyokaTableString "\".*\"" contains=inyokaTableOperators contained
 syn match inyokaTableOperators "\(=\|;\)" contained
 syn match inyokaTableNumbers "\d\+" contained
+
+" new table syntax
+syn match inyokaNewTableKeywords "^+++$" contained
 
 " old table syntax
 syn region inyokaOldTable matchgroup=inyokaTableDelimiter start="^\s*||" end="||\s*$" keepend contains=inyokaTableOpts,inyokaOldTableKeywords,@inyokaBlocks,@inyokaInline
@@ -224,6 +234,7 @@ hi def link inyokaTableString      String
 hi def link inyokaTableNumbers     Number
 
 hi def link inyokaOldTableKeywords Identifier
+hi def link inyokaNewTableKeywords Special
 
 hi def link inyokaTemplateInline   Define
 hi def link inyokaTemplateFalse    Error
