@@ -118,6 +118,7 @@ syn cluster inyokaLevel1 contains=inyokaComment,inyokaQuote,inyokaTag,inyokaRule
 
 " headings
 " Folds level one and two.
+" FIXME: This does not skip codeblocks with leading = .
 syn region inyokaH1fold start="^=\([^=]\|$\)" end="\(^=\([^=]\|$\)\)\@=" keepend contains=inyokaH1,inyokaH2fold,@inyokaInline,@inyokaLevel1,@inyokaBlocks contained fold
 syn region inyokaH1 matchgroup=inyokaHeadingDelimiter start="^=" end="=\+\s*$" keepend contained
 
@@ -199,7 +200,8 @@ syn region inyokaBold start="\S\@<='''\|'''\S\@=" skip="\\'" end="\S\@<='''\|'''
 syn region inyokaBoldItalic start="\S\@<='''''\|'''''\S\@=" skip="\\'" end="\S\@<='''''\|'''''\S\@=" keepend contains=inyokaLineStart
 syn region inyokaUnderline start="\S\@<=__\|__\S\@=" skip="\\=" end="\S\@<=__\|__\S\@=" keepend contains=inyokaLineStart
 syn region inyokaMono start="\S\@<=`\|`\S\@=" skip="\\`" end="\S\@<=`\|`\S\@=" keepend contains=inyokaLineStart
-syn region inyokaMono start="\S\@<=``\|``\S\@=" skip="\\``" end="\S\@<=``\|``\S\@=" keepend contains=inyokaLineStart
+syn region inyokaMono start="\S\@<=``\|``\S\@=" end="\S\@<=``\|``\S\@=" keepend contains=inyokaLineStart
+syn region inyokaMono start="\S\@<=```\|```\S\@=" end="\S\@<=```\|```\S\@=" keepend contains=inyokaLineStart
 syn region inyokaStrikeout start="\S\@<=--(\|--(\S\@=" end="\S\@<=)--\|)--\S\@=" keepend contains=inyokaLineStart
 syn region inyokaSmaller start="\S\@<=\~-(\|\~-(\S\@=" end="\S\@<=)-\~\|)-\~\S\@=" keepend contains=inyokaLineStart
 syn region inyokaBigger start="\S\@<=\~+(\|\~+(\S\@=" end="\S\@<=)+\~\|)+\~\S\@=" keepend contains=inyokaLineStart
@@ -222,23 +224,25 @@ exec 'syn match inyokaTemplateKeywords "\s*'.b:template_macro.'\s*" contained'
 exec 'syn region inyokaTemplateArgs matchgroup=inyokaTemplateArgsDelimiter start="\(\s*'.b:template_macro.'\s*\)\@<=(" skip="\\)" end=")\s*" keepend contains=inyokaTemplateFalse,inyokaTemplateArg,inyokaTemplateParams contained'
 
 " NOTE: Per template check is too much overhead.
-"       Instaed complete list with infinite arguments are used instead. Those
-"       templates that don't need arguments are called below manually.
+"       Complete list with infinite arguments is used instead. Those
+"       templates that don't need arguments are called below manually (and
+"       some common ones).
 " call b:TemplateInnerHighlight('\('.join(s:template_supported_inl, '\|').'\)', 0, "NONE")
 call b:TemplateInnerHighlight('\('.join(s:template_supported_inl, '\|').'\)', -1, "NONE")
 
 " Check inline template parameters.
-" NOTE: Call common templates.
-" call b:TemplateInnerHighlight("Archiviert", 0, "@inyokaInline")
+" call b:TemplateInnerHighlight("Archiviert", 0, "NONE")
 " call b:TemplateInnerHighlight("Archiviert", 1, "@inyokaInline")
-" call b:TemplateInnerHighlight("Ausbaufähig", 0, "@inyokaInline")
+" call b:TemplateInnerHighlight("Ausbaufähig", 0, "NONE")
 " call b:TemplateInnerHighlight("Ausbaufähig", 1, "@inyokaInline")
 " call b:TemplateInnerHighlight("Award", 3, "NONE")
 " call b:TemplateInnerHighlight("Baustelle", -1, "NONE")
 " call b:TemplateInnerHighlight("Befehl", -1, "inyokaMarker")
+call b:TemplateInnerHighlight("Bildunterschrift", -1, "@inyokaPictureSmall")
 call b:TemplateInnerHighlight("Fortgeschritten", 0, "NONE")
 call b:TemplateInnerHighlight("Getestet", -1, "inyokaUbuntuVersions")
-call b:TemplateInnerHighlight("Bildunterschrift", -1, "@inyokaPictureSmall")
+" call b:TemplateInnerHighlight("Verlassen", 0, "NONE")
+" call b:TemplateInnerHighlight("Verlassen", 1, "NONE")
 
 
 " macros
@@ -291,12 +295,16 @@ syn match inyokaKeywords "\\\\$"
 " tables keywords
 syn cluster inyokaNewTable contains=inyokaTableOpts,inyokaNewTableKeywords
 
-syn region inyokaTableOpts matchgroup=inyokaTableDelimiter start="<" end=">" keepend contains=inyokaTableKeywords,inyokaTableString,inyokaTableOperators,inyokaTableNumbers contained
+syn region inyokaTableOpts matchgroup=inyokaTableDelimiter start="<" end=">" keepend contains=inyokaTableKeywords,inyokaTableString,inyokaTableRowOptions,inyokaTableOperators,inyokaTableNumbers contained
 syn match inyokaTableKeywords "\(\(<\|\s\)\@<=\(-\||\)\(\d\+\(\s\|>\)\)\@=\|\(\s\|<\|\"\|:\|v\|(\|)\|\^\)\@<=\(:\|v\|(\|)\|\^\)\(\s\|>\|\(:\|v\|(\|)\|\^\)\)\@=\)" contained
-syn match inyokaTableKeywords "\(<\|\s\|\"\)\@<=\(rowclass\|rowstyle\|cellclass\|cellstyle\|tablestyle\)\(=\)\@=" contained
-syn match inyokaTableString "\"[^"]*\"" contains=inyokaTableOperators contained
+syn match inyokaTableKeywords "\(<\s*\(-\d\+\(%\)\?\s*\)\?\|;\s*\"\s*\|\"\s*;\s*\)\@<=\(rowclass\|rowstyle\|cellclass\|cellstyle\|tablestyle\)\(=\)\@=" contained
+syn match inyokaTableString "\"[^"]*\"" contains=inyokaTableOperators,inyokaTableOptions,inyokaTableStrNumbers,inyokaTableColor contained
+syn match inyokaTableOptions "\(;\s*\|\"\)\@<=\(width\|\(background-\|\)color\)\(:\)\@=" contained
+syn match inyokaTableOptions "\(;\s*\|\"\)\@<=\(\(\|kde-\|xfce-\|edu-\|studio-\|lxde-\)\(titel\|kopf\|highlight\)\|gruen\|gelb\|grau\)\(\s*;\|\s*\"\)\@=" contained
 syn match inyokaTableOperators "\(=\|;\)" contained
-syn match inyokaTableNumbers "\d\+\(%\|\)\(\s\|>\)\@=" contained
+syn match inyokaTableStrNumbers "\(:\s*\)\@<=\d\+\(%\)\?\(\s*\"\|\s*;\)\@=" contained
+syn match inyokaTableNumbers "\( \|-\||\)\@<=\d\+\(%\)\?\(\s\|>\|\s*\"\|\s*;\)\@=" contained
+syn match inyokaTableColor "\(color:\s*\)\@<=#[0-9A-Fa-f]\{6}\(\s*\"\|\s*;\)\@=" contained
 
 " new table syntax
 syn match inyokaNewTableKeywords "^+++$" contained
@@ -365,9 +373,11 @@ hi          inyokaCodeType         guifg=yellow ctermfg=yellow gui=bold cterm=bo
 
 hi def link inyokaTableDelimiter   Identifier
 hi def link inyokaTableKeywords    Statement
-hi          inyokaTableOperators   guifg=lightgreen ctermfg=lightgreen
 hi def link inyokaTableString      String
 hi def link inyokaTableNumbers     Number
+hi def link inyokaTableStrNumbers  Number
+hi          inyokaTableColor       guifg=lightred ctermfg=lightred
+hi          inyokaTableOptions     guifg=yellow ctermfg=yellow gui=underline cterm=underline
 
 hi def link inyokaOldTableKeywords Identifier
 hi def link inyokaNewTableKeywords Special

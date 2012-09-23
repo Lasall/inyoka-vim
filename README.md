@@ -23,12 +23,15 @@ So far it's pretty usable (at least for me).
 
 Everything works except following things:
  * Currently not all inline formattings are working (well) inside of blocks
-(problems with perl). Actually there is perl highlighting but keywords
-are missed.
+   (problems with perl). Actually there is perl highlighting but keywords
+   are missed.
  * Some languages will change leading #!code CODETYPE
-identifier (make, perl, debsources).
- * Nested code blocks don't work ({{{ foobar {{{ barfoo \\}\\}\\} }}}). Use
-inline templates instead.
+   identifier (make, perl, debsources).
+ * Nested code blocks don't work (`{{{ foobar {{{ barfoo \}\}\} }}}`). Use
+   inline templates instead.
+ * "Headings" inside of blocks are recognised as headings
+   (`{{{\_.*\_^=\+\}}}`). Don't start your code lines with an evil equal
+   character!
 
 If you find additional bugs/problems/failures please report them!
 
