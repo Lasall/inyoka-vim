@@ -41,7 +41,25 @@ endfunction
 
 " Enables special features for different templates.
 function! b:TemplateHighlight(template, containings) abort
-  exec 'syn region inyokaTemplateBlock start="\({{{\)\@<=\#\!'.s:template_str[0].'\s\+'.a:template.'\(\s\+\|$\)" end="}}}" contains=inyokaTemplateIdentifier,'.a:containings.' contained'
+  exec 'syn region inyokaTemplateBlock start="\({{{\)\@<=\#\!'.b:template_macro.'\s\+'.a:template.'\(\s\+\|$\)" end="}}}" contains=inyokaTemplateIdentifier,'.a:containings.' contained'
+endfunction
+
+
+" Enables special features for different macros.
+function! b:MacroInnerHighlight(macrotype, argn, containings)
+  if a:argn == "NUMBER"
+    exec 'syn match inyokaMacroArg "\(\s*'.a:macrotype.'\s*(\)\@<=\s*[0-9]\+\s*" nextgroup=inyokaTemplateFalse contained'
+  elseif a:argn == "STRING"
+    exec 'syn match inyokaMacroArg "\(\s*'.a:macrotype.'\s*(\)\@<=\s*[^, \t]\+\s*" nextgroup=inyokaTemplateFalse contains='.a:containings.' contained'
+  elseif a:argn == 1
+    exec 'syn match inyokaMacroParams "\(\s*'.a:macrotype.'\s*(\)\@<=\s*[^, \t]\+\s*" nextgroup=inyokaTemplateFalse contains='.a:containings.' contained'
+  elseif a:argn == 2
+    exec 'syn region inyokaMacroArg start="\(\s*'.a:macrotype.'\s*(\)\@<=\s*[^, \t]\+\(\s*,\s*\S.*)\)\@=" end=",\@=" nextgroup=inyokaMacroParams contains='.a:containings.' contained'
+    exec 'syn region inyokaMacroParams start="\(\(\s*'.a:macrotype.'\s*(\s*[^, \t]\+\)\s*\(\(,\s*\)\?\)\)\@<=" end=",\@=" contains='.a:containings.' contained'
+  elseif a:argn < 0
+    exec 'syn region inyokaMacroArg start="\(\s*'.a:macrotype.'\s*(\)\@<=\s*[^, \t]\+\(\s*,\s*\S.*)\)\@=" end=",\@=" nextgroup=inyokaMacroParams contained'
+    exec 'syn region inyokaMacroParams start="\(\(\s*'.a:macrotype.'\s*(\s*[^, \t]\+\)\>\s*\(\|,\s*\|,\s*[^,]\+.*\)\)\@<=" end=",\@=" contains='.a:containings.' contained'
+  endif
 endfunction
 
 " Enables special features for different (inline) templates.
@@ -53,7 +71,7 @@ function! b:TemplateInnerHighlight(template, argn, containings)
     exec 'syn match inyokaTemplateArg "\(\s*'.a:template.'\s*\)" nextgroup=inyokaTemplateFalse contained'
   elseif a:argn == 1
     " Do some magic (verify that at least one valid parameter is given).
-    exec 'syn region inyokaTemplateArg start="(\@<=\s*'.a:template.'\>\(\s*,\s*\S.*)\)\@=" end=",\@=" nextgroup=inyokaTemplateParams contained'
+    exec 'syn region inyokaTemplateArg start="(\@<=\s*'.a:template.'\>\(\s*,\s*\S.*)\)\@=" end=",\@=" nextgroup=inyokaTemplateParams contains='.a:containings.' contained'
     " Do some magic (verify that exactly one valid parameter is given).
     exec 'syn region inyokaTemplateParams start="\(\((\s*'.a:template.'\)\>\s*\(\(,\s*\)\?\)\)\@<=" end=",\@=" contains='.a:containings.' contained'
   elseif a:argn == 2
@@ -80,17 +98,16 @@ endfunction
 syn case match
 
 " Supportet macros.
-" NOTE: Name the macro of templates first in list.
-let s:template_str = ["Vorlage", "Inhaltsverzeichnis", "Anker", "Anhang", "Bild"]
+let b:template_macro = "Vorlage"
+let b:macros = ["Inhaltsverzeichnis", "Anker", "Anhang", "Bild"]
 
 " Supported templates with {{{}}}.
 " NOTE: Inyoka parser alwasy supports inline and block templates but we make a
 "       difference.
 " See http://wiki.ubuntuusers.de/Wiki/vorlagen .
-let s:template_supported_block = ["Befehl", "Bildersammlung", "Bildunterschrift", "Builddeps", "Experten", "Hinweis", "Icon-Übersicht", "IM", "Namensliste", "Paketinstallation", "Tabelle", "Uebersicht", "Uebersicht2", "Warnung", "Wissen"]
-" Inline templates.
-" TODO: Give function to check number of arguments.
-let s:template_supported_inl = ['Archiviert', 'Ausbaufähig', 'Award', 'Baustelle', 'Befehl', 'Code', 'Experten', 'Fortgeschritten', 'Fremd', 'Fremdpaket', 'Fremdquellle', 'Fremdquelle-auth', 'Getestet', 'Hinweis', 'Ikhayabild', 'InArbeit', 'PPA', 'Tasten', 'Überarbeitung', 'Verlassen', 'Warnung']
+let s:template_supported_block = ["Befehl", "Bildersammlung", "Builddeps", "Experten", "Hinweis", "Icon-Übersicht", "IM", "Namensliste", "Paketinstallation", "Tabelle", "Uebersicht", "Uebersicht2", "Warnung", "Wissen"]
+" Inline templates: [[template_macro(TEMPLATE, parameters...)]]
+let s:template_supported_inl = ['Archiviert', 'Ausbaufähig', 'Award', 'Baustelle', 'Befehl', 'Bildersammlung', 'Bildunterschrift', 'Code', 'Experten', 'Fortgeschritten', 'Fremd', 'Fremdpaket', 'Fremdquellle', 'Fremdquelle-auth', 'Getestet', 'Hinweis', 'Ikhayabild', 'InArbeit', 'PPA', 'Tasten', 'Überarbeitung', 'Verlassen', 'Warnung']
 
 
 syn match inyokaLineStart "^[<@]\@!" nextgroup=@inyokaBlocks
@@ -120,7 +137,7 @@ syn region inyokaBlock matchgroup=inyokaBlockDelimiter start="{{{" end="}}}" kee
 " templates
 syn match inyokaTemplateTypeFalse ".*" contained
 syn case ignore
-exec 'syn region inyokaTemplateBlock start="\({{{\)\@<=\#\!'.s:template_str[0].'\s\+\w\@=" end="}}}" contains=inyokaTemplateIdentifier contained'
+exec 'syn region inyokaTemplateBlock start="\({{{\)\@<=\#\!'.b:template_macro.'\s\+\w\@=" end="}}}" contains=inyokaTemplateIdentifier contained'
 
 " Enable inline support for these templates.
 call b:TemplateHighlight("Tabelle", "@inyokaInline,inyokaMarker,@inyokaNewTable")
@@ -131,7 +148,7 @@ call b:TemplateHighlight("Warnung", "@inyokaInline,inyokaMarker")
 call b:TemplateHighlight("Wissen", "@inyokaInline,inyokaMarker")
 call b:TemplateHighlight("Paketinstallation", "@inyokaInline,inyokaMarker,@inyokaPackageList")
 
-exec 'syn match inyokaTemplateIdentifier "\({{{\)\@<=\#\!'.s:template_str[0].'\s\+\w\@=" nextgroup=inyokaTemplateType contained'
+exec 'syn match inyokaTemplateIdentifier "\({{{\)\@<=\#\!'.b:template_macro.'\s\+\w\@=" nextgroup=inyokaTemplateType contained'
 syn match inyokaTemplateType "\w\+" nextgroup=inyokaTemplateTypeFalse contained
 
 " Only match supported templates.
@@ -189,7 +206,7 @@ syn region inyokaBigger start="\S\@<=\~+(\|\~+(\S\@=" end="\S\@<=)+\~\|)+\~\S\@=
 
 syn region inyokaLinks matchgroup=inyokaLinksDelimiter start="\[" skip="\\\]" end="\]" keepend contains=inyokaLinksOuter,inyokaLinksInterWiki,inyokaLinksInner,inyokaPointer,inyokaLineStart
 
-syn region inyokaTemplateInline matchgroup=inyokaTemplateDelimiter start="\[\[" skip="\\]\\]" end="\]\]" keepend contains=inyokaLineBreak,inyokaTemplateKeywords,inyokaTemplateArgs,inyokaTemplateFalse,inyokaLineStart fold
+syn region inyokaTemplateInline matchgroup=inyokaTemplateDelimiter start="\[\[" skip="\\]\\]" end="\]\]" keepend contains=inyokaLineBreak,inyokaTemplateKeywords,inyokaMacroKeywords,inyokaTemplateArgs,inyokaTemplateFalse,inyokaLineStart fold
 
 " links
 syn match inyokaLinksInterWiki "[^ :]\+\s*:\@=" nextgroup=inyokaLinksInner skipwhite contained
@@ -201,8 +218,8 @@ syn match inyokaLinksTitle ".*" contains=@inyokaInline contained
 " templates
 syn match inyokaTemplateFalse ".*" contained
 syn case ignore
-exec 'syn match inyokaTemplateKeywords "\s*\('.join(s:template_str, '\|').'\)\s*" contained'
-syn region inyokaTemplateArgs matchgroup=inyokaTemplateArgsDelimiter start="(" skip="\\)" end=")\s*" keepend contains=inyokaTemplateFalse,inyokaTemplateArg,inyokaTemplateParams contained
+exec 'syn match inyokaTemplateKeywords "\s*'.b:template_macro.'\s*" contained'
+exec 'syn region inyokaTemplateArgs matchgroup=inyokaTemplateArgsDelimiter start="\(\s*'.b:template_macro.'\s*\)\@<=(" skip="\\)" end=")\s*" keepend contains=inyokaTemplateFalse,inyokaTemplateArg,inyokaTemplateParams contained'
 
 " NOTE: Per template check is too much overhead.
 "       Instaed complete list with infinite arguments are used instead. Those
@@ -221,6 +238,18 @@ call b:TemplateInnerHighlight('\('.join(s:template_supported_inl, '\|').'\)', -1
 " call b:TemplateInnerHighlight("Befehl", -1, "inyokaMarker")
 call b:TemplateInnerHighlight("Fortgeschritten", 0, "NONE")
 call b:TemplateInnerHighlight("Getestet", -1, "inyokaUbuntuVersions")
+call b:TemplateInnerHighlight("Bildunterschrift", -1, "@inyokaPictureSmall")
+
+
+" macros
+exec 'syn match inyokaMacroKeywords "\s*\('.join(b:macros, '\|').'\)\s*" contained'
+exec 'syn region inyokaTemplateArgs matchgroup=inyokaTemplateArgsDelimiter start="\(\s*\('.join(b:macros, '\|').'\)\s*\)\@<=(" skip="\\)" end=")\s*" keepend contains=inyokaTemplateFalse,inyokaMacroArg,inyokaMacroParams contained'
+call b:MacroInnerHighlight("Inhaltsverzeichnis", "NUMBER", "NONE")
+call b:MacroInnerHighlight("Anker", 1, "NONE")
+call b:MacroInnerHighlight("Anhang", "STRING", "NONE")
+call b:MacroInnerHighlight("Anhang", 2, "NONE")
+call b:MacroInnerHighlight("Bild", "STRING", "NONE")
+call b:MacroInnerHighlight("Bild", -1, "@inyokaPictureExt")
 
 syn case match
 
@@ -263,10 +292,11 @@ syn match inyokaKeywords "\\\\$"
 syn cluster inyokaNewTable contains=inyokaTableOpts,inyokaNewTableKeywords
 
 syn region inyokaTableOpts matchgroup=inyokaTableDelimiter start="<" end=">" keepend contains=inyokaTableKeywords,inyokaTableString,inyokaTableOperators,inyokaTableNumbers contained
-syn match inyokaTableKeywords "\(-\||\|rowclass\|rowstyle\|:\|v\|cellclass\|cellstyle\|(\|)\|\^\|tablestyle\)" contained
-syn match inyokaTableString "\".*\"" contains=inyokaTableOperators contained
+syn match inyokaTableKeywords "\(\(<\|\s\)\@<=\(-\||\)\(\d\+\(\s\|>\)\)\@=\|\(\s\|<\|\"\|:\|v\|(\|)\|\^\)\@<=\(:\|v\|(\|)\|\^\)\(\s\|>\|\(:\|v\|(\|)\|\^\)\)\@=\)" contained
+syn match inyokaTableKeywords "\(<\|\s\|\"\)\@<=\(rowclass\|rowstyle\|cellclass\|cellstyle\|tablestyle\)\(=\)\@=" contained
+syn match inyokaTableString "\"[^"]*\"" contains=inyokaTableOperators contained
 syn match inyokaTableOperators "\(=\|;\)" contained
-syn match inyokaTableNumbers "\d\+" contained
+syn match inyokaTableNumbers "\d\+\(%\|\)\(\s\|>\)\@=" contained
 
 " new table syntax
 syn match inyokaNewTableKeywords "^+++$" contained
@@ -287,6 +317,18 @@ syn match inyokaPackages "^[a-zA-Z_-]\+" contained
 syn case ignore
 syn match inyokaUbuntuVersions "\(quantal\|precise\|oneiric\|natty\|lucid\|hardy\|general\)" contained
 syn case match
+
+
+" match picture macro keywords
+syn cluster inyokaPictureExt contains=inyokaPictureKeywords,inyokaPictureOp,inyokaPictureAlign,inyokaPictureNumber
+syn cluster inyokaPictureSmall contains=inyokaPictureKeywordsSmall,inyokaPictureAlignSmall,inyokaPictureNumber
+
+syn match inyokaPictureKeywords "\(,\s*\)\@<=\<\(alt\|align\|title\|longdesc\)\>\(=\)\@=" contained
+syn match inyokaPictureKeywordsSmall "\(,\s*\)\@<=\<\(xfce\|kde\|edu\|lxde\|studio\)-style\>\(=\)\@=" contained
+syn match inyokaPictureOp "\(,\s*\(alt\|align\|title\|longdesc\)\)\@<==\(\S\)\@=" contained
+syn match inyokaPictureAlign "\(,\s*\(\|align=\)\)\@<=\(right\|left\|center\)\>\s*\(,\|)\)\@=" contained
+syn match inyokaPictureAlignSmall "\(,\s*\)\@<=\(right\|left\)\>\s*\(,\|)\)\@=" contained
+syn match inyokaPictureNumber "\(,\)\@<=\s*\(\d\+x\|\)\d\+\s*\(,\|)\)\@=" contained
 
 
 " Define the default highlighting.
@@ -341,6 +383,10 @@ hi def link inyokaTemplateArgsDelimiter Define
 hi def link inyokaTemplateArg      Number
 hi def link inyokaTemplateParams   Constant
 
+hi def link inyokaMacroKeywords    Statement
+hi def link inyokaMacroArg         Number
+hi def link inyokaMacroParams      Constant
+
 hi def link inyokaFlag             Define
 hi def link inyokaRule             Special
 hi def link inyokaTag              Tag
@@ -364,6 +410,12 @@ hi          inyokaPackageComp      guifg=white ctermfg=white
 hi          inyokaPackages         gui=bold cterm=bold
 
 hi          inyokaUbuntuVersions   gui=underline cterm=underline
+
+hi def link inyokaPictureKeywords  Statement
+hi def link inyokaPictureKeywordsSmall Statement
+hi def link inyokaPictureAlign     Tag
+hi def link inyokaPictureAlignSmall Tag
+hi def link inyokaPictureNumber    Number
 
 let b:current_syntax = "inyoka"
 
