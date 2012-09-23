@@ -41,7 +41,39 @@ endfunction
 
 " Enables special features for different templates.
 function! b:TemplateHighlight(template, containings) abort
-  exec 'syn region inyokaTemplateBlock start="\({{{\)\@<=\#\!'.s:template_str[0].'\s\+'.a:template.'\(\s\+\|$\)" end="}}}" contains=inyokaTemplateIdentifier,'.a:containings
+  exec 'syn region inyokaTemplateBlock start="\({{{\)\@<=\#\!'.s:template_str[0].'\s\+'.a:template.'\(\s\+\|$\)" end="}}}" contains=inyokaTemplateIdentifier,'.a:containings.' contained'
+endfunction
+
+" Enables special features for different (inline) templates.
+function! b:TemplateInnerHighlight(template, argn, containings)
+
+  " NOTE: If you are bored, you can shorten those level 1 to 4 regexes.
+  "       (But who cares, VIM would expand them... so no need to work on it)
+  if a:argn == 0
+    exec 'syn match inyokaTemplateArg "\(\s*'.a:template.'\s*\)" nextgroup=inyokaTemplateFalse contained'
+  elseif a:argn == 1
+    " Do some magic (verify that at least one valid parameter is given).
+    exec 'syn region inyokaTemplateArg start="(\@<=\s*'.a:template.'\>\(\s*,\s*\S.*)\)\@=" end=",\@=" nextgroup=inyokaTemplateParams contained'
+    " Do some magic (verify that exactly one valid parameter is given).
+    exec 'syn region inyokaTemplateParams start="\(\((\s*'.a:template.'\)\>\s*\(\(,\s*\)\?\)\)\@<=" end=",\@=" contains='.a:containings.' contained'
+  elseif a:argn == 2
+    exec 'syn region inyokaTemplateArg start="(\@<=\s*'.a:template.'\>\(\s*,\s*\S.*)\)\@=" end=",\@=" nextgroup=inyokaTemplateParams contained'
+    " Do more magic. You see the magic point?
+    exec 'syn region inyokaTemplateParams start="\(\((\s*'.a:template.'\)\>\s*\(\|,\s*\|,\s*[^,]\+.\)\)\@<=" end=",\@=" contains='.a:containings.' contained'
+  elseif a:argn == 3
+    " Easy that was, now show me three, my young padavan.
+    exec 'syn region inyokaTemplateArg start="(\@<=\s*'.a:template.'\>\(\s*,\s*\S.*)\)\@=" end=",\@=" nextgroup=inyokaTemplateParams contained'
+    " No magic, that's intuitive.
+    exec 'syn region inyokaTemplateParams start="\(\((\s*'.a:template.'\)\>\s*\(\|,\s*\|,\s*[^,]\+.\|,\s*[^,]\+\s*,\s*[^,]\+.\)\)\@<=" end=",\@=" contains='.a:containings.' contained'
+  elseif a:argn == 4
+    " Boring.
+    exec 'syn region inyokaTemplateArg start="(\@<=\s*'.a:template.'\>\(\s*,\s*\S.*)\)\@=" end=",\@=" nextgroup=inyokaTemplateParams contained'
+    exec 'syn region inyokaTemplateParams start="\(\((\s*'.a:template.'\)\>\s*\(\|,\s*\|,\s*[^,]\+.\|,\s*[^,]\+\s*,\s*[^,]\+.\|,\s*[^,]\+\s*,\s*[^,]\+\s*,\s*[^,]\+.\)\)\@<=" end=",\@=" contains='.a:containings.' contained'
+  elseif a:argn < 0
+    " To match it all (without ,).
+    exec 'syn region inyokaTemplateArg start="(\@<=\s*'.a:template.'\>\(\s*,\s*\S.*)\)\@=" end=",\@=" nextgroup=inyokaTemplateParams contained'
+    exec 'syn region inyokaTemplateParams start="\(\((\s*'.a:template.'\)\>\s*\(\|,\s*\|,\s*[^,]\+.*\)\)\@<=" end=",\@=" contains='.a:containings.' contained'
+  endif
 endfunction
 
 
@@ -58,7 +90,7 @@ let s:template_str = ["Vorlage", "Inhaltsverzeichnis", "Anker", "Anhang", "Bild"
 let s:template_supported_block = ["Befehl", "Bildersammlung", "Bildunterschrift", "Builddeps", "Experten", "Hinweis", "Icon-Übersicht", "IM", "Namensliste", "Paketinstallation", "Tabelle", "Uebersicht", "Uebersicht2", "Warnung", "Wissen"]
 " Inline templates.
 " TODO: Give function to check number of arguments.
-let s:template_supported_inl = []
+let s:template_supported_inl = ['Archiviert', 'Ausbaufähig', 'Award', 'Baustelle', 'Befehl', 'Code', 'Experten', 'Fortgeschritten', 'Fremd', 'Fremdpaket', 'Fremdquellle', 'Fremdquelle-auth', 'Getestet', 'Hinweis', 'Ikhayabild', 'InArbeit', 'PPA', 'Tasten', 'Überarbeitung', 'Verlassen', 'Warnung']
 
 
 syn match inyokaLineStart "^[<@]\@!" nextgroup=@inyokaBlocks
@@ -72,7 +104,7 @@ syn cluster inyokaLevel1 contains=inyokaComment,inyokaQuote,inyokaTag,inyokaRule
 syn region inyokaH1fold start="^=\([^=]\|$\)" end="\(^=\([^=]\|$\)\)\@=" keepend contains=inyokaH1,inyokaH2fold,@inyokaInline,@inyokaLevel1,@inyokaBlocks contained fold
 syn region inyokaH1 matchgroup=inyokaHeadingDelimiter start="^=" end="=\+\s*$" keepend contained
 
-syn region inyokaH2fold start="^==\([^=]\|$\)" end="\(^=\(=\?\|$\)\)\@=" keepend contains=inyokaH2,@inyokaInline,@inyokaLevel1,@inyokaBlocks contained fold
+syn region inyokaH2fold start="^==\([^=]\|$\)" end="\(^=\(=\)\?\([^=]\|$\)\)\@=" keepend contains=inyokaH2,@inyokaInline,@inyokaLevel1,@inyokaBlocks contained fold
 syn region inyokaH2 matchgroup=inyokaHeadingDelimiter start="^==" end="=\+\s*$" keepend contained
 
 syn region inyokaH3 matchgroup=inyokaHeadingDelimiter start="^===" end="=\+\s*$" keepend contains=@inyokaInline contained
@@ -90,7 +122,7 @@ syn match inyokaTemplateTypeFalse ".*" contained
 syn case ignore
 exec 'syn region inyokaTemplateBlock start="\({{{\)\@<=\#\!'.s:template_str[0].'\s\+\w\@=" end="}}}" contains=inyokaTemplateIdentifier contained'
 
-" Enable inline support for this templates.
+" Enable inline support for these templates.
 call b:TemplateHighlight("Tabelle", "@inyokaInline,inyokaMarker,@inyokaNewTable")
 call b:TemplateHighlight("Befehl", "inyokaMarker")
 call b:TemplateHighlight("Hinweis", "@inyokaInline,inyokaMarker")
@@ -118,7 +150,7 @@ syn region inyokaCodeBlock start="\({{{\)\@<=\#\!code\(\s\+\|$\)" end="}}}" tran
 " TODO1: Is it possible to call only if needed? We would get matching from
 "        inyokaTemplateIdentifier match.
 " TODO2: Make config options. To enable/disalbe supported file types.
-" File import errors will dropped silently.
+" File import errors are dropped silently.
 "
 " To add a new  language, add 'call s:TextEnableCodeSnip2('FT', 'REGEX')' where
 " FT is the file extension which is used by VIM and REGEX is the regular
@@ -167,13 +199,29 @@ syn region inyokaLinksInner matchgroup=inyokaLinksDelimiter start="#" end=" " ke
 syn match inyokaLinksTitle ".*" contains=@inyokaInline contained
 
 " templates
-syn case ignore
 syn match inyokaTemplateFalse ".*" contained
+syn case ignore
 exec 'syn match inyokaTemplateKeywords "\s*\('.join(s:template_str, '\|').'\)\s*" contained'
-syn region inyokaTemplateArgs matchgroup=inyokaTemplateArgsDelimiter start="(" skip="\\)" end=")\s*" keepend contains=inyokaTemplateParams,inyokaTemplateArg contained
-syn region inyokaTemplateParams start=",\@<=" end=",\@=" keepend contained
-" TODO: Check templates.
-syn match inyokaTemplateArg "(\@<=[^,)]\+" contained
+syn region inyokaTemplateArgs matchgroup=inyokaTemplateArgsDelimiter start="(" skip="\\)" end=")\s*" keepend contains=inyokaTemplateFalse,inyokaTemplateArg,inyokaTemplateParams contained
+
+" NOTE: Per template check is too much overhead.
+"       Instaed complete list with infinite arguments are used instead. Those
+"       templates that don't need arguments are called below manually.
+" call b:TemplateInnerHighlight('\('.join(s:template_supported_inl, '\|').'\)', 0, "NONE")
+call b:TemplateInnerHighlight('\('.join(s:template_supported_inl, '\|').'\)', -1, "NONE")
+
+" Check inline template parameters.
+" NOTE: Call common templates.
+" call b:TemplateInnerHighlight("Archiviert", 0, "@inyokaInline")
+" call b:TemplateInnerHighlight("Archiviert", 1, "@inyokaInline")
+" call b:TemplateInnerHighlight("Ausbaufähig", 0, "@inyokaInline")
+" call b:TemplateInnerHighlight("Ausbaufähig", 1, "@inyokaInline")
+" call b:TemplateInnerHighlight("Award", 3, "NONE")
+" call b:TemplateInnerHighlight("Baustelle", -1, "NONE")
+" call b:TemplateInnerHighlight("Befehl", -1, "inyokaMarker")
+call b:TemplateInnerHighlight("Fortgeschritten", 0, "NONE")
+call b:TemplateInnerHighlight("Getestet", -1, "inyokaUbuntuVersions")
+
 syn case match
 
 " pointers
@@ -233,6 +281,12 @@ syn match inyokaOldTableKeywords "||" contained
 syn cluster inyokaPackageList contains=inyokaPackageComp,inyokaPackages
 syn match inyokaPackageComp "\(main\|restricted\|universe\|multiverse\|ppa\)" contained
 syn match inyokaPackages "^[a-zA-Z_-]\+" contained
+
+
+" underline Ubuntu versions
+syn case ignore
+syn match inyokaUbuntuVersions "\(quantal\|precise\|oneiric\|natty\|lucid\|hardy\|general\)" contained
+syn case match
 
 
 " Define the default highlighting.
@@ -308,6 +362,8 @@ hi def link inyokaModTags          Error
 
 hi          inyokaPackageComp      guifg=white ctermfg=white
 hi          inyokaPackages         gui=bold cterm=bold
+
+hi          inyokaUbuntuVersions   gui=underline cterm=underline
 
 let b:current_syntax = "inyoka"
 
