@@ -10,7 +10,6 @@ if exists("b:current_syntax")
   finish
 endif
 
-
 " Function to highlight different regions with different syntax schemes.
 " Modified version of vim.wikia:
 " http://vim.wikia.com/wiki/Different_syntax_highlighting_within_regions_of_a_file
@@ -429,4 +428,4 @@ hi def link inyokaPictureNumber    Number
 
 let b:current_syntax = "inyoka"
 
-" vim:set sw=2:
+" vim:set sw=2 ts=2 sts=2 et

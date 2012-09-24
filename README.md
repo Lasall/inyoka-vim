@@ -1,14 +1,14 @@
 inyoka-vim
 ==========
 inyoka-vim contains an [inyoka](http://inyokaproject.org) VIM syntax
-highlighting scheme (with syntax folding) and some snipMate snippets for
-VIM 7+.  
+highlighting scheme (with syntax folding), some snipMate snippets and a
+filetype plugin to open links (with <ENTER>).
 All color definitions are optimized for a dark colorscheme (I use
 xoria256) but please feel free to propose changes (e.g. a complete suite
 for a light colorscheme). Also inner file syntax highlighting of other
 common languages is supported (c, cpp, sh/bash, python, perl, xml,
 debsources, debcontrol).  
-Adding other languages is very easy. Just look into the code line ~125.
+Adding other languages is very easy. Just look into the code line ~175.
 
 I got inspiration from the markdown syntax scheme by Tim Pope.
 
@@ -38,15 +38,20 @@ If you find additional bugs/problems/failures please report them!
 
 Installation
 ------------
-Copy the *inyoka.vim* syntax file to your `$VIMRUNTIME/syntax` directory.
-Then reload vim and set filetype to `inyoka` and use syntax foldmethod:
+Make sure to have a VIM 7.X installation running.  
+Then copy the *syntax/inyoka.vim* syntax file to your `$VIMRUNTIME/syntax`
+directory. Now reload vim and set filetype to `inyoka` and use syntax
+foldmethod:  
 `:set ft=inyoka fdm=syntax`
 
 To use snippets, first install snipMate from github repository:
 [msanders/snipmate](https://github.com/msanders/snipmate.vim)  
-Version from [vim.org](http://www.vim.org/) is not up to date (problems with \` completions).
-Then copy *inyoka.snippet* to your snippet directory (`$VIMRUNTIME/snippet`)
-and enjoy.
+Version from [vim.org](http://www.vim.org/) is not up to date (problems with
+\` completions). Then copy *snippet/inyoka.snippet* to your snippet directory
+(`$VIMRUNTIME/snippet`) and enjoy.
+
+To use filetype plugin, copy the *ftplugin/inyoka.vim* to your filetype plugin
+directory (`$VIMRUNTIME/ftplugin`) and set filetype to `inyoka`.
 
 
 Contributions
