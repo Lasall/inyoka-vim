@@ -112,16 +112,16 @@ let s:template_supported_inl = ['Archiviert', 'Ausbaufähig', 'Award', 'Baustell
 syn match inyokaLineStart "^[<@]\@!" nextgroup=@inyokaBlocks
 
 syn cluster inyokaBlocks contains=inyokaH1fold,inyokaH2fold,inyokaH3,inyokaH4,inyokaH5,inyokaH6,inyokaBlock
-syn cluster inyokaInline contains=inyokaItalic,inyokaBold,inyokaBoldItalic,inyokaUnderline,inyokaMono,inyokaStrikeout,inyokaSmaller,inyokaBigger,inyokaMarker,inyokaModTags,inyokaLinks,inyokaFlag,inyokaList,inyokaKeywords,inyokaTemplateInline,inyokaOldTable
+syn cluster inyokaInline contains=inyokaItalic,inyokaBold,inyokaBoldItalic,inyokaUnderline,inyokaMono,inyokaStrikeout,inyokaSmaller,inyokaBigger,inyokaMarker,inyokaModTags,inyokaLinks,inyokaFlag,inyokaKeywords,inyokaTemplateInline,inyokaOldTable
 syn cluster inyokaLevel1 contains=inyokaComment,inyokaQuote,inyokaTag,inyokaRule
 
 " headings
 " Folds level one and two.
 " FIXME: This does not skip codeblocks with leading = .
-syn region inyokaH1fold start="^=\([^=]\|$\)" end="\(^=\([^=]\|$\)\)\@=" keepend contains=inyokaH1,inyokaH2fold,@inyokaInline,@inyokaLevel1,@inyokaBlocks contained fold
+syn region inyokaH1fold start="^=\([^=]\|$\)" end="\(^=\([^=]\|$\)\)\@=" keepend contains=inyokaH1,inyokaH2fold,@inyokaInline,@inyokaLevel1,inyokaList,@inyokaBlocks contained fold
 syn region inyokaH1 matchgroup=inyokaHeadingDelimiter start="^=" end="=\+\s*$" keepend contained
 
-syn region inyokaH2fold start="^==\([^=]\|$\)" end="\(^=\(=\)\?\([^=]\|$\)\)\@=" keepend contains=inyokaH2,@inyokaInline,@inyokaLevel1,@inyokaBlocks contained fold
+syn region inyokaH2fold start="^==\([^=]\|$\)" end="\(^=\(=\)\?\([^=]\|$\)\)\@=" keepend contains=inyokaH2,@inyokaInline,@inyokaLevel1,inyokaList,@inyokaBlocks contained fold
 syn region inyokaH2 matchgroup=inyokaHeadingDelimiter start="^==" end="=\+\s*$" keepend contained
 
 syn region inyokaH3 matchgroup=inyokaHeadingDelimiter start="^===" end="=\+\s*$" keepend contains=@inyokaInline contained
@@ -142,10 +142,10 @@ exec 'syn region inyokaTemplateBlock start="\({{{\)\@<=\#\!'.b:template_macro.'\
 " Enable inline support for these templates.
 call b:TemplateHighlight("Tabelle", "@inyokaInline,inyokaMarker,@inyokaNewTable")
 call b:TemplateHighlight("Befehl", "inyokaMarker")
-call b:TemplateHighlight("Hinweis", "@inyokaInline,inyokaMarker")
-call b:TemplateHighlight("Experten", "@inyokaInline,inyokaMarker")
-call b:TemplateHighlight("Warnung", "@inyokaInline,inyokaMarker")
-call b:TemplateHighlight("Wissen", "@inyokaInline,inyokaMarker")
+call b:TemplateHighlight("Hinweis", "@inyokaInline,inyokaList,inyokaMarker")
+call b:TemplateHighlight("Experten", "@inyokaInline,inyokaList,inyokaMarker")
+call b:TemplateHighlight("Warnung", "@inyokaInline,inyokaList,inyokaMarker")
+call b:TemplateHighlight("Wissen", "@inyokaInline,inyokaList,inyokaMarker")
 call b:TemplateHighlight("Paketinstallation", "@inyokaInline,inyokaMarker,@inyokaPackageList")
 
 exec 'syn match inyokaTemplateIdentifier "\({{{\)\@<=\#\!'.b:template_macro.'\s\+\w\@=" nextgroup=inyokaTemplateType contained'
@@ -190,7 +190,7 @@ syn case match
 syn match inyokaList "^\s\+\([-*]\|1\.\)\%\(\s*\S\)\@="
 
 " quotes
-syn region inyokaQuote start="^>" end="^\([^>]\|$\)\@=" contains=inyokaQuoteDelimiter,@inyokaBlocks,@inyokaInline fold
+syn region inyokaQuote start="^>" end="^\([^>]\|$\)\@=" contains=inyokaQuoteDelimiter,@inyokaBlocks,@inyokaInline,inyokaList fold
 syn match inyokaQuoteDelimiter "^>\+" contained
 
 " inline markups
@@ -309,7 +309,7 @@ syn match inyokaTableColor "\(color:\s*\)\@<=#[0-9A-Fa-f]\{6}\(\s*\"\|\s*;\)\@="
 syn match inyokaNewTableKeywords "^+++$" contained
 
 " old table syntax
-syn region inyokaOldTable matchgroup=inyokaTableDelimiter start="^\s*||" end="||\s*$" keepend contains=inyokaTableOpts,inyokaOldTableKeywords,@inyokaBlocks,@inyokaInline
+syn region inyokaOldTable matchgroup=inyokaTableDelimiter start="^\s*||" end="||\s*$" keepend contains=inyokaTableOpts,inyokaOldTableKeywords,@inyokaBlocks,@inyokaInline,inyokaList
 syn match inyokaOldTableKeywords "||" contained
 
 

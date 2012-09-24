@@ -32,6 +32,7 @@ Everything works except following things:
  * "Headings" inside of blocks are recognised as headings
    (`{{{\_.*\_^=\+\}}}`). Don't start your code lines with an evil equal
    character!
+ * ftplugin only opens first link in line.
 
 If you find additional bugs/problems/failures please report them!
 

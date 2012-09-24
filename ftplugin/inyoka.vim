@@ -9,7 +9,6 @@ function! HandleInyokaURL()
     " wiki link.
     let a:in = 0
     if ! empty(matchstr(a:uri, '\v^[^:]*:[^:]*:$'))
-      let s:uri = substitute(a:uri, "\v\:$", "", "")
       let a:inner = matchstr(a:uri, '\v^[^:]*\ze:')
       let a:part = matchstr(a:uri, '\v^[^:]*:\zs[^:]*\ze:$')
       if a:inner == ""
